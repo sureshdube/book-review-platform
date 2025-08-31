@@ -14,9 +14,16 @@ export class AuthService {
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.userModel.findOne({ email });
-    if (user && await bcrypt.compare(pass, user.password)) {
-      const { password, ...result } = user.toObject();
-      return result;
+    if (!user || typeof user.password !== 'string' || !user.password) {
+      return null;
+    }
+    try {
+      if (await bcrypt.compare(pass, user.password)) {
+        const { password, ...result } = user.toObject();
+        return result;
+      }
+    } catch (e) {
+      return null;
     }
     return null;
   }
