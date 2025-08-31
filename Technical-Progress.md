@@ -3,10 +3,11 @@
 This document tracks the progress of technical tasks defined in the Technical PRD for the MVP.
 
 
+
 ## Progress Bar
 
 - [x] T001 – Set up separate containerized React frontend and NestJS backend projects
-- [ ] T002 – Implement MongoDB integration for backend data storage
+- [x] T002 – Implement MongoDB integration for backend data storage
 - [ ] T003 – Implement JWT authentication with short-lived access and refresh tokens
 - [ ] T004 – Enforce user data encryption at rest in MongoDB
 - [ ] T005 – Integrate with Open Library API and cache book data locally
