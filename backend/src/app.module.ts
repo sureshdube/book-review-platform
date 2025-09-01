@@ -4,8 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { User, UserSchema } from './schemas/user.schema';
 import { AppService } from './app.service';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import { AuthModule } from './auth/auth.module';
 import { Book, BookSchema } from './schemas/book.schema';
 import { BookService } from './book/book.service';
 import { BookController } from './book/book.controller';
@@ -22,8 +21,9 @@ import { BookController } from './book/book.controller';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '300s' },
     }),
+    AuthModule,
   ],
-  controllers: [AuthController, BookController],
-  providers: [AppService, AuthService, BookService],
+  controllers: [BookController, require('./auth/auth.controller').AuthController],
+  providers: [AppService, BookService],
 })
 export class AppModule {}

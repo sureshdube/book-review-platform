@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 export default function AuthForm({ onAuth, mode = 'login' }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,8 +14,8 @@ export default function AuthForm({ onAuth, mode = 'login' }) {
     setLoading(true);
     setError('');
     try {
-      const url = mode === 'signup' ? '/auth/test-user' : '/auth/login';
-      const res = await axios.post(url, { email, password });
+  const url = mode === 'signup' ? `${API_BASE}/auth/test-user` : `${API_BASE}/auth/login`;
+  const res = await axios.post(url, { email, password });
       onAuth(res.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Auth failed');

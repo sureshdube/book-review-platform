@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 export default function BookList() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,11 +13,11 @@ export default function BookList() {
       setLoading(true);
       setError('');
       try {
-        let res = await axios.get('/books');
+        let res = await axios.get(`${API_BASE}/books`);
         if (res.data.length === 0) {
           // Seed default books if cache is empty
-          await axios.post('/books/seed-defaults');
-          res = await axios.get('/books');
+          await axios.post(`${API_BASE}/books/seed-defaults`);
+          res = await axios.get(`${API_BASE}/books`);
         }
         setBooks(res.data);
       } catch (err) {
