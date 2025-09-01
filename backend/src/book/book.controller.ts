@@ -61,12 +61,21 @@ export class BookController {
     // Parse and validate
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.max(1, parseInt(limit, 10) || 20);
-    return this.bookService.getPaginatedBooks(pageNum, limitNum, q);
+  // Return paginated books with rating stats
+  return this.bookService.getPaginatedBooksWithStats(pageNum, limitNum, q);
   }
 
   @Get(':isbn')
   async getBook(@Param('isbn') isbn: string) {
-    return this.bookService.fetchAndCacheBook(isbn);
+    const book = await this.bookService.fetchAndCacheBook(isbn);
+    if (!book) throw new Error('Book not found');
+    const stats = await this.reviewService.getRatingStats(isbn);
+    return { ...book.toObject(), ratingStats: stats };
+  }
+  // Endpoint for rating stats only (optional, for frontend real-time refresh)
+  @Get(':isbn/rating-stats')
+  async getRatingStats(@Param('isbn') isbn: string) {
+    return this.reviewService.getRatingStats(isbn);
   }
 
   @Post('refresh')

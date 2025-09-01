@@ -82,6 +82,18 @@ function BookList() {
             <div><strong>{book.title}</strong></div>
             <div style={{ fontSize: 13, color: '#555' }}>{book.authors?.join(', ')}</div>
             <div style={{ fontSize: 12, color: '#888' }}>ISBN: {book.isbn}</div>
+            {book.ratingStats && (
+              <div style={{ fontSize: 13, color: '#f39c12', marginTop: 4 }}>
+                <span title="Average Rating">
+                  {'★'.repeat(Math.round(book.ratingStats.avgRating || 0))}
+                  {'☆'.repeat(5 - Math.round(book.ratingStats.avgRating || 0))}
+                </span>
+                <span style={{ color: '#555', marginLeft: 6 }}>
+                  {book.ratingStats.avgRating !== null ? book.ratingStats.avgRating.toFixed(1) : 'N/A'} / 5
+                  {' '}({book.ratingStats.reviewCount} review{book.ratingStats.reviewCount === 1 ? '' : 's'})
+                </span>
+              </div>
+            )}
           </div>
         ))}
       </div>

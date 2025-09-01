@@ -1,4 +1,3 @@
-// ...existing code...
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -7,10 +6,51 @@ import axios from 'axios';
 
 @Injectable()
 export class BookService {
+  // Return paginated books with rating stats for each book
+  async getPaginatedBooksWithStats(page: number, limit: number, q?: string) {
+    const skip = (page - 1) * limit;
+    let filter = {};
+    if (q && q.trim()) {
+      const regex = new RegExp(q.trim(), 'i');
+      filter = {
+        $or: [
+          { title: regex },
+          { authors: regex },
+        ],
+      };
+    }
+    const [books, total] = await Promise.all([
+      this.bookModel.find(filter).skip(skip).limit(limit).lean(),
+      this.bookModel.countDocuments(filter),
+    ]);
+    // For each book, get stats
+    const statsArr = await Promise.all(
+      books.map(async b => {
+        const [agg] = await this.bookModel.db.collection('reviews').aggregate([
+          { $match: { isbn: b.isbn } },
+          { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } },
+        ]).toArray();
+        return {
+          avgRating: agg?.avg ? Number(agg.avg.toFixed(1)) : null,
+          reviewCount: agg?.count || 0,
+        };
+      })
+    );
+    const booksWithStats = books.map((b, i) => ({ ...b, ratingStats: statsArr[i] }));
+    return {
+      books: booksWithStats,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
   private readonly logger = new Logger(BookService.name);
   constructor(
     @InjectModel(Book.name) private bookModel: Model<BookDocument>,
   ) {}
+
+
 
   async fetchAndCacheBook(isbn: string): Promise<BookDocument> {
     // Try cache first

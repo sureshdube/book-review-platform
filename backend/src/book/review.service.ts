@@ -1,4 +1,5 @@
 
+
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -7,6 +8,17 @@ import { Book, BookDocument } from '../schemas/book.schema';
 
 @Injectable()
 export class ReviewService {
+  // Aggregate average rating and review count for a book
+  async getRatingStats(isbn: string) {
+    const [agg] = await this.reviewModel.aggregate([
+      { $match: { isbn } },
+      { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } },
+    ]);
+    return {
+      avgRating: agg?.avg ? Number(agg.avg.toFixed(1)) : null,
+      reviewCount: agg?.count || 0,
+    };
+  }
   constructor(
     @InjectModel(Review.name) private reviewModel: Model<ReviewDocument>,
     @InjectModel(Book.name) private bookModel: Model<BookDocument>,

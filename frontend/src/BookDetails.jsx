@@ -156,6 +156,8 @@ export default function BookDetails() {
   const desc = book.data?.description?.value || book.data?.description || 'No description available.';
   const genres = book.data?.subjects?.join(', ');
   const published = book.data?.publish_date || book.data?.publish_year?.[0];
+  const avgRating = book.ratingStats?.avgRating;
+  const reviewCount = book.ratingStats?.reviewCount;
 
   return (
     <div style={{ maxWidth: 600, margin: '32px auto', padding: 24, border: '1px solid #ccc', borderRadius: 8 }}>
@@ -168,6 +170,16 @@ export default function BookDetails() {
           <div style={{ fontSize: 14, color: '#888', margin: '8px 0' }}>ISBN: {book.isbn}</div>
           <div style={{ margin: '8px 0' }}><strong>Published:</strong> {published || 'Unknown'}</div>
           <div style={{ margin: '8px 0' }}><strong>Genres:</strong> {genres || 'N/A'}</div>
+          <div style={{ margin: '8px 0', color: '#f39c12' }}>
+            <span title="Average Rating">
+              {'★'.repeat(Math.round(avgRating || 0))}
+              {'☆'.repeat(5 - Math.round(avgRating || 0))}
+            </span>
+            <span style={{ color: '#555', marginLeft: 6 }}>
+              {avgRating !== null && avgRating !== undefined ? avgRating.toFixed(1) : 'N/A'} / 5
+              {' '}({reviewCount} review{reviewCount === 1 ? '' : 's'})
+            </span>
+          </div>
         </div>
       </div>
       <div style={{ marginTop: 24 }}>
