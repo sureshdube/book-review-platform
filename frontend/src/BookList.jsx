@@ -1,9 +1,10 @@
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
-
-export default function BookList() {
+function BookList() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -13,6 +14,7 @@ export default function BookList() {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchBooks() {
@@ -74,7 +76,8 @@ export default function BookList() {
       {!loading && !error && books.length === 0 && <div>No books cached yet.</div>}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
         {books.map(book => (
-          <div key={book._id || book.isbn} style={{ border: '1px solid #ccc', borderRadius: 8, padding: 12, width: 200 }}>
+          <div key={book._id || book.isbn} style={{ border: '1px solid #ccc', borderRadius: 8, padding: 12, width: 200, cursor: 'pointer' }}
+            onClick={() => navigate(`/books/${book.isbn}`)}>
             {book.cover && <img src={book.cover} alt="cover" style={{ maxWidth: '100%', marginBottom: 8 }} />}
             <div><strong>{book.title}</strong></div>
             <div style={{ fontSize: 13, color: '#555' }}>{book.authors?.join(', ')}</div>
@@ -90,3 +93,5 @@ export default function BookList() {
     </div>
   );
 }
+
+export default BookList;

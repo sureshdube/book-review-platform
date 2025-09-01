@@ -1,10 +1,12 @@
 
 
 
+
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import BookSearch from './BookSearch';
 import BookList from './BookList';
+import BookDetails from './BookDetails';
 import AuthForm from './AuthForm';
 
 export default function App() {
@@ -44,6 +46,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<BookList />} />
               <Route path="/search" element={<BookSearch />} />
+              <Route path="/books/:isbn" element={<BookDetails />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </>
