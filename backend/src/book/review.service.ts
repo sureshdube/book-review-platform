@@ -1,3 +1,4 @@
+
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -31,5 +32,19 @@ export class ReviewService {
 
   async getReviewsForBook(isbn: string) {
     return this.reviewModel.find({ isbn }).sort({ createdAt: -1 }).lean();
+  }
+  async updateReview(isbn: string, reviewId: string, userId: string, rating?: number, text?: string) {
+    const review = await this.reviewModel.findOne({ _id: reviewId, isbn, user: userId });
+    if (!review) throw new BadRequestException('Review not found or not owned by user');
+    if (rating !== undefined) review.rating = rating;
+    if (text !== undefined) review.text = text;
+    await review.save();
+    return review;
+  }
+
+  async deleteReview(isbn: string, reviewId: string, userId: string) {
+    const review = await this.reviewModel.findOneAndDelete({ _id: reviewId, isbn, user: userId });
+    if (!review) throw new BadRequestException('Review not found or not owned by user');
+    return { deleted: true };
   }
 }

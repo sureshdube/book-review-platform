@@ -1,5 +1,6 @@
 
-import { Controller, Get, Param, Post, Query, Body, Req, UseGuards } from '@nestjs/common';
+
+import { Controller, Get, Param, Post, Query, Body, Patch, Delete } from '@nestjs/common';
 import { BookService } from './book.service';
 import { ReviewService } from './review.service';
 
@@ -11,6 +12,25 @@ export class BookController {
   ) {}
 
   // Get all reviews for a book
+  // Edit a review (user can only edit their own review)
+  @Patch(':isbn/reviews/:reviewId')
+  async updateReview(
+    @Param('isbn') isbn: string,
+    @Param('reviewId') reviewId: string,
+    @Body() body: { rating?: number; text?: string; user: string },
+  ) {
+    return this.reviewService.updateReview(isbn, reviewId, body.user, body.rating, body.text);
+  }
+
+  // Delete a review (user can only delete their own review)
+  @Delete(':isbn/reviews/:reviewId')
+  async deleteReview(
+    @Param('isbn') isbn: string,
+    @Param('reviewId') reviewId: string,
+    @Body() body: { user: string },
+  ) {
+    return this.reviewService.deleteReview(isbn, reviewId, body.user);
+  }
   @Get(':isbn/reviews')
   async getReviews(@Param('isbn') isbn: string) {
     return this.reviewService.getReviewsForBook(isbn);
