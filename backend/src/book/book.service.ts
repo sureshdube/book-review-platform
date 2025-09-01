@@ -65,11 +65,21 @@ export class BookService {
     return this.bookModel.find().lean();
   }
 
-  async getPaginatedBooks(page: number, limit: number) {
+  async getPaginatedBooks(page: number, limit: number, q?: string) {
     const skip = (page - 1) * limit;
+    let filter = {};
+    if (q && q.trim()) {
+      const regex = new RegExp(q.trim(), 'i');
+      filter = {
+        $or: [
+          { title: regex },
+          { authors: regex },
+        ],
+      };
+    }
     const [books, total] = await Promise.all([
-      this.bookModel.find().skip(skip).limit(limit).lean(),
-      this.bookModel.countDocuments(),
+      this.bookModel.find(filter).skip(skip).limit(limit).lean(),
+      this.bookModel.countDocuments(filter),
     ]);
     return {
       books,

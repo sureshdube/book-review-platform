@@ -17,11 +17,12 @@ export class BookController {
   async getAllBooks(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
+    @Query('q') q?: string,
   ) {
     // Parse and validate
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.max(1, parseInt(limit, 10) || 20);
-    return this.bookService.getPaginatedBooks(pageNum, limitNum);
+    return this.bookService.getPaginatedBooks(pageNum, limitNum, q);
   }
 
   @Get(':isbn')

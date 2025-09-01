@@ -11,17 +11,21 @@ export default function BookList() {
   const [limit, setLimit] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   useEffect(() => {
     async function fetchBooks() {
       setLoading(true);
       setError('');
       try {
-        let res = await axios.get(`${API_BASE}/books?page=${page}&limit=${limit}`);
+        let url = `${API_BASE}/books?page=${page}&limit=${limit}`;
+        if (search) url += `&q=${encodeURIComponent(search)}`;
+        let res = await axios.get(url);
         // If no books, seed defaults
-        if (res.data.books && res.data.books.length === 0 && page === 1) {
+        if (res.data.books && res.data.books.length === 0 && page === 1 && !search) {
           await axios.post(`${API_BASE}/books/seed-defaults`);
-          res = await axios.get(`${API_BASE}/books?page=${page}&limit=${limit}`);
+          res = await axios.get(url);
         }
         setBooks(res.data.books || []);
         setTotalPages(res.data.totalPages || 1);
@@ -33,14 +37,30 @@ export default function BookList() {
       }
     }
     fetchBooks();
-  }, [page, limit]);
+  }, [page, limit, search]);
 
   const handlePrev = () => setPage(p => Math.max(1, p - 1));
   const handleNext = () => setPage(p => Math.min(totalPages, p + 1));
+  const handleSearch = e => {
+    e.preventDefault();
+    setPage(1);
+    setSearch(searchInput.trim());
+  };
 
   return (
     <div style={{ marginTop: 32 }}>
       <h2>Cached Books</h2>
+      <form onSubmit={handleSearch} style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
+        <input
+          type="text"
+          value={searchInput}
+          onChange={e => setSearchInput(e.target.value)}
+          placeholder="Search by title or author"
+          style={{ flex: 1, padding: 8 }}
+        />
+        <button type="submit">Search</button>
+        {search && <button type="button" onClick={() => { setSearch(''); setSearchInput(''); setPage(1); }}>Clear</button>}
+      </form>
       <div style={{ marginBottom: 16 }}>
         <label>
           Items per page:
