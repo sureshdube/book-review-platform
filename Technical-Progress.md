@@ -10,7 +10,7 @@ This document tracks the progress of technical tasks defined in the Technical PR
 +- [x] T002 – Implement MongoDB integration for backend data storage
 +- [x] T003 – Implement JWT authentication with short-lived access and refresh tokens
 - [ ] T004 – Enforce user data encryption at rest in MongoDB
-- [ ] T005 – Integrate with Open Library API and cache book data locally
+- [x] T005 – Integrate with Open Library API and cache book data locally
 - [ ] T006 – Implement REST API with versioning and auto-generated Swagger docs
 - [ ] T007 – Implement configurable pagination (default 20) for book and review listings
 - [ ] T008 – Implement simple search (SQL-like) for books by title/author
