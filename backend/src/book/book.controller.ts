@@ -1,17 +1,36 @@
 
-import { Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, Body, Req, UseGuards } from '@nestjs/common';
 import { BookService } from './book.service';
+import { ReviewService } from './review.service';
 
 @Controller('books')
 export class BookController {
-  constructor(private readonly bookService: BookService) {}
+  constructor(
+    private readonly bookService: BookService,
+    private readonly reviewService: ReviewService,
+  ) {}
+
+  // Get all reviews for a book
+  @Get(':isbn/reviews')
+  async getReviews(@Param('isbn') isbn: string) {
+    return this.reviewService.getReviewsForBook(isbn);
+  }
+
+  // Create a review for a book (requires auth)
+  @Post(':isbn/reviews')
+  async createReview(
+    @Param('isbn') isbn: string,
+    @Body() body: { rating: number; text?: string; user: string; userEmail: string },
+  ) {
+    // In a real app, get user/userEmail from JWT, here from body for MVP simplicity
+    return this.reviewService.createReview(isbn, body.user, body.userEmail, body.rating, body.text);
+  }
 
   // Add default books if cache is empty
   @Post('seed-defaults')
   async seedDefaults() {
     return this.bookService.seedDefaultBooks();
   }
-
 
   @Get()
   async getAllBooks(

@@ -23,7 +23,8 @@ export class AuthService {
     const hash = await bcrypt.hash(password, 10);
     const user = await this.userModel.create({ email, password: hash });
     const { password: _, ...result } = user.toObject();
-    return result;
+    const tokens = this.getTokens(user);
+    return { _id: user._id, email: user.email, ...tokens };
   }
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.userModel.findOne({ email });
@@ -32,8 +33,7 @@ export class AuthService {
     }
     try {
       if (await bcrypt.compare(pass, user.password)) {
-        const { password, ...result } = user.toObject();
-        return result;
+        return user;
       }
     } catch (e) {
       return null;
@@ -42,6 +42,11 @@ export class AuthService {
   }
 
   async login(user: any) {
+    const tokens = this.getTokens(user);
+    return { _id: user._id, email: user.email, ...tokens };
+  }
+
+  getTokens(user: any) {
     const payload = { username: user.email, sub: user._id };
     return {
       access_token: this.jwtService.sign(payload, { expiresIn: '15m' }),

@@ -10,6 +10,21 @@ export default function BookDetails() {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reviews, setReviews] = useState([]);
+  const [reviewText, setReviewText] = useState('');
+  const [rating, setRating] = useState(5);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState('');
+
+  // Get user from localStorage (MVP, not secure)
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch {
+      return null;
+    }
+  })();
 
   useEffect(() => {
     async function fetchBook() {
@@ -24,14 +39,50 @@ export default function BookDetails() {
         setLoading(false);
       }
     }
+    async function fetchReviews() {
+      try {
+        const res = await axios.get(`${API_BASE}/books/${isbn}/reviews`);
+        setReviews(res.data || []);
+      } catch {}
+    }
     fetchBook();
+    fetchReviews();
   }, [isbn]);
 
+  const handleReviewSubmit = async e => {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitError('');
+    setSubmitSuccess('');
+    if (!user?._id || !user?.email) {
+      setSubmitError('User info missing. Please log out and log in again.');
+      setSubmitting(false);
+      return;
+    }
+    try {
+      await axios.post(`${API_BASE}/books/${isbn}/reviews`, {
+        rating,
+        text: reviewText,
+        user: user._id,
+        userEmail: user.email,
+      });
+      setSubmitSuccess('Review submitted!');
+      setReviewText('');
+      setRating(5);
+      // Refresh reviews
+      const res = await axios.get(`${API_BASE}/books/${isbn}/reviews`);
+      setReviews(res.data || []);
+    } catch (err) {
+      setSubmitError(err?.response?.data?.message || 'Failed to submit review');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Extract details from Open Library data if available
   if (loading) return <div>Loading book details...</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
   if (!book) return <div>Book not found.</div>;
-
-  // Extract details from Open Library data if available
   const desc = book.data?.description?.value || book.data?.description || 'No description available.';
   const genres = book.data?.subjects?.join(', ');
   const published = book.data?.publish_date || book.data?.publish_year?.[0];
@@ -53,6 +104,46 @@ export default function BookDetails() {
         <h3>Description</h3>
         <div style={{ whiteSpace: 'pre-line', color: '#333' }}>{desc}</div>
       </div>
+
+      <div style={{ marginTop: 32 }}>
+        <h3>Reviews</h3>
+        {reviews.length === 0 && <div>No reviews yet.</div>}
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {reviews.map(r => (
+            <li key={r._id} style={{ borderBottom: '1px solid #eee', marginBottom: 12, paddingBottom: 8 }}>
+              <div style={{ fontWeight: 'bold' }}>{r.userEmail || 'User'} <span style={{ color: '#f39c12' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span></div>
+              <div style={{ fontSize: 13, color: '#555' }}>{r.text}</div>
+              <div style={{ fontSize: 11, color: '#888' }}>{new Date(r.createdAt).toLocaleString()}</div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {user && (
+        <form onSubmit={handleReviewSubmit} style={{ marginTop: 24, border: '1px solid #eee', borderRadius: 8, padding: 16 }}>
+          <h4>Write a Review</h4>
+          <div style={{ marginBottom: 8 }}>
+            <label>Rating: </label>
+            <select value={rating} onChange={e => setRating(Number(e.target.value))} style={{ marginLeft: 8 }}>
+              {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} Star{n>1?'s':''}</option>)}
+            </select>
+          </div>
+          <div style={{ marginBottom: 8 }}>
+            <textarea
+              value={reviewText}
+              onChange={e => setReviewText(e.target.value)}
+              rows={3}
+              maxLength={2000}
+              placeholder="Write your review (optional)"
+              style={{ width: '100%', padding: 8 }}
+            />
+          </div>
+          <button type="submit" disabled={submitting} style={{ padding: 8 }}>Submit Review</button>
+          {submitError && <div style={{ color: 'red', marginTop: 8 }}>{submitError}</div>}
+          {submitSuccess && <div style={{ color: 'green', marginTop: 8 }}>{submitSuccess}</div>}
+        </form>
+      )}
+      {!user && <div style={{ marginTop: 24, color: '#888' }}>Login to write a review.</div>}
     </div>
   );
 }
