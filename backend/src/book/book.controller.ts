@@ -1,5 +1,5 @@
 
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { BookService } from './book.service';
 
 @Controller('books')
@@ -14,9 +14,14 @@ export class BookController {
 
 
   @Get()
-  async getAllBooks() {
-    // Return all cached books
-    return this.bookService.getAllBooks();
+  async getAllBooks(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '20',
+  ) {
+    // Parse and validate
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 20);
+    return this.bookService.getPaginatedBooks(pageNum, limitNum);
   }
 
   @Get(':isbn')

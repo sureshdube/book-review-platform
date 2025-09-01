@@ -1,3 +1,4 @@
+// ...existing code...
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -62,6 +63,21 @@ export class BookService {
 
   async getAllBooks(): Promise<BookDocument[]> {
     return this.bookModel.find().lean();
+  }
+
+  async getPaginatedBooks(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const [books, total] = await Promise.all([
+      this.bookModel.find().skip(skip).limit(limit).lean(),
+      this.bookModel.countDocuments(),
+    ]);
+    return {
+      books,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
   async seedDefaultBooks(): Promise<{ seeded: number; books: BookDocument[] }> {
     const count = await this.bookModel.countDocuments();
