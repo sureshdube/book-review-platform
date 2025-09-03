@@ -26,7 +26,7 @@ import { ReviewService } from './book/review.service';
     }),
     AuthModule,
   ],
-  controllers: [BookController, require('./auth/auth.controller').AuthController],
+  controllers: [BookController, require('./auth/auth.controller').AuthController, require('./user/user.controller').UserController],
   providers: [AppService, BookService, ReviewService],
 })
 export class AppModule {}

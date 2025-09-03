@@ -3,11 +3,12 @@
 
 
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import BookSearch from './BookSearch';
 import BookList from './BookList';
 import BookDetails from './BookDetails';
 import AuthForm from './AuthForm';
+import UserProfile from './UserProfile';
 
 export default function App() {
   const [user, setUser] = useState(() => {
@@ -39,14 +40,16 @@ export default function App() {
           </>
         ) : (
           <>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-              <span style={{ marginRight: 16 }}>Logged in as <b>{user.user?.email || user.email}</b></span>
-              <button onClick={handleLogout} style={{ padding: 8 }}>Logout</button>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 16, gap: 12 }}>
+              <span>Logged in as <b>{user.user?.email || user.email}</b></span>
+              <Link to="/profile" style={{ textDecoration: 'none', color: '#0074d9', fontWeight: 'bold', marginLeft: 8 }}>Profile</Link>
+              <button onClick={handleLogout} style={{ padding: 8, marginLeft: 8 }}>Logout</button>
             </div>
             <Routes>
               <Route path="/" element={<BookList />} />
               <Route path="/search" element={<BookSearch />} />
               <Route path="/books/:isbn" element={<BookDetails />} />
+              <Route path="/profile" element={<UserProfile />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </>

@@ -11,6 +11,9 @@ export class User {
 
   @Prop()
   name?: string;
+
+  @Prop({ type: [String], default: [], maxlength: 20 })
+  favourites: string[];
 }
 
 export type UserDocument = User & Document;
