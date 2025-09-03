@@ -10,6 +10,9 @@ import { BookService } from './book/book.service';
 import { BookController } from './book/book.controller';
 import { Review, ReviewSchema } from './schemas/review.schema';
 import { ReviewService } from './book/review.service';
+import { Config, ConfigSchema } from './schemas/config.schema';
+import { ConfigController } from './config.controller';
+import { RecommendationsController } from './recommendations.controller';
 
 @Module({
   imports: [
@@ -18,7 +21,8 @@ import { ReviewService } from './book/review.service';
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Book.name, schema: BookSchema },
-  { name: Review.name, schema: ReviewSchema },
+      { name: Review.name, schema: ReviewSchema },
+      { name: Config.name, schema: ConfigSchema },
     ]),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
@@ -26,7 +30,7 @@ import { ReviewService } from './book/review.service';
     }),
     AuthModule,
   ],
-  controllers: [BookController, require('./auth/auth.controller').AuthController, require('./user/user.controller').UserController],
+  controllers: [BookController, require('./auth/auth.controller').AuthController, require('./user/user.controller').UserController, ConfigController, RecommendationsController],
   providers: [AppService, BookService, ReviewService],
 })
 export class AppModule {}

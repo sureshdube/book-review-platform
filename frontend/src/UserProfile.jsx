@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Recommendations from './Recommendations';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
 
@@ -106,6 +107,7 @@ export default function UserProfile() {
           </li>
         ))}
       </ul>
+      <Recommendations userId={user._id} />
     </div>
   );
 }

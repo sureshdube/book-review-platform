@@ -9,6 +9,7 @@ import BookList from './BookList';
 import BookDetails from './BookDetails';
 import AuthForm from './AuthForm';
 import UserProfile from './UserProfile';
+import AdminConfig from './AdminConfig';
 
 export default function App() {
   const [user, setUser] = useState(() => {
@@ -43,6 +44,9 @@ export default function App() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 16, gap: 12 }}>
               <span>Logged in as <b>{user.user?.email || user.email}</b></span>
               <Link to="/profile" style={{ textDecoration: 'none', color: '#0074d9', fontWeight: 'bold', marginLeft: 8 }}>Profile</Link>
+              {((user.user?.email || user.email) === 'admin@admin.com') && (
+                <Link to="/admin" style={{ textDecoration: 'none', color: '#b8860b', fontWeight: 'bold', marginLeft: 8 }}>Admin</Link>
+              )}
               <button onClick={handleLogout} style={{ padding: 8, marginLeft: 8 }}>Logout</button>
             </div>
             <Routes>
@@ -50,6 +54,7 @@ export default function App() {
               <Route path="/search" element={<BookSearch />} />
               <Route path="/books/:isbn" element={<BookDetails />} />
               <Route path="/profile" element={<UserProfile />} />
+              <Route path="/admin" element={<AdminConfig />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </>

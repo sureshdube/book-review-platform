@@ -1,10 +1,18 @@
 
 import React, { useEffect, useState } from 'react';
+import Recommendations from './Recommendations';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
 function BookList() {
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch {
+      return null;
+    }
+  });
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -51,7 +59,8 @@ function BookList() {
 
   return (
     <div style={{ marginTop: 32 }}>
-      <h2>Cached Books</h2>
+      {user && <Recommendations userId={user._id} />}
+      <h2 style={{ marginTop: 24 }}>Cached Books</h2>
       <form onSubmit={handleSearch} style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
         <input
           type="text"
