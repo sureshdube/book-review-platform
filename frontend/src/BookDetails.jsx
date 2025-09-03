@@ -9,6 +9,9 @@ export default function BookDetails() {
   const navigate = useNavigate();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isFavourite, setIsFavourite] = useState(false);
+  const [favLoading, setFavLoading] = useState(false);
+  const [favError, setFavError] = useState('');
   const [error, setError] = useState('');
   const [reviews, setReviews] = useState([]);
   const [reviewText, setReviewText] = useState('');
@@ -51,9 +54,37 @@ export default function BookDetails() {
         setReviews(res.data || []);
       } catch {}
     }
+    async function fetchFavourite() {
+      if (!user?._id) return;
+      try {
+        const res = await axios.get(`${API_BASE}/users/${user._id}/profile`);
+        const favs = res.data.favourites || [];
+        setIsFavourite(favs.some(b => b.isbn === isbn));
+      } catch {}
+    }
     fetchBook();
     fetchReviews();
-  }, [isbn]);
+    fetchFavourite();
+  }, [isbn, user?._id]);
+  // Handle favourite toggle
+  const handleFavourite = async () => {
+    if (!user?._id) return;
+    setFavLoading(true);
+    setFavError('');
+    try {
+      if (!isFavourite) {
+        await axios.post(`${API_BASE}/users/${user._id}/favourites/${isbn}`);
+        setIsFavourite(true);
+      } else {
+        await axios.delete(`${API_BASE}/users/${user._id}/favourites/${isbn}`);
+        setIsFavourite(false);
+      }
+    } catch (err) {
+      setFavError('Failed to update favourite');
+    } finally {
+      setFavLoading(false);
+    }
+  };
 
   // Find the user's own review, if any
   const userReview = user && reviews.find(r => r.user === user._id);
@@ -180,6 +211,26 @@ export default function BookDetails() {
               {' '}({reviewCount} review{reviewCount === 1 ? '' : 's'})
             </span>
           </div>
+          {user && (
+            <button
+              onClick={handleFavourite}
+              disabled={favLoading}
+              style={{
+                marginTop: 12,
+                background: isFavourite ? '#ffe066' : '#eee',
+                color: isFavourite ? '#b8860b' : '#555',
+                border: '1px solid #ccc',
+                borderRadius: 6,
+                padding: '6px 16px',
+                fontWeight: 'bold',
+                cursor: favLoading ? 'not-allowed' : 'pointer',
+              }}
+              title={isFavourite ? 'Remove from favourites' : 'Add to favourites'}
+            >
+              {isFavourite ? '★ Favourite' : '☆ Add to Favourites'}
+            </button>
+          )}
+          {favError && <div style={{ color: 'red', marginTop: 8 }}>{favError}</div>}
         </div>
       </div>
       <div style={{ marginTop: 24 }}>

@@ -20,21 +20,33 @@ export default function UserProfile() {
       setLoading(false);
       return;
     }
-    async function fetchProfile() {
-      setLoading(true);
-      setError('');
-      try {
-        const res = await axios.get(`${API_BASE}/users/${u._id}/profile`);
-        setReviews(res.data.reviews || []);
-        setFavourites(res.data.favourites || []);
-      } catch (err) {
-        setError('Failed to load profile');
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProfile();
+    fetchProfile(u._id);
   }, []);
+
+  const fetchProfile = async (userId) => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await axios.get(`${API_BASE}/users/${userId}/profile`);
+      setReviews(res.data.reviews || []);
+      setFavourites(res.data.favourites || []);
+    } catch (err) {
+      setError('Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveFavourite = async (isbn) => {
+    if (!user?._id) return;
+    try {
+      await axios.delete(`${API_BASE}/users/${user._id}/favourites/${isbn}`);
+      // Refresh favourites
+      fetchProfile(user._id);
+    } catch (err) {
+      alert('Failed to remove favourite');
+    }
+  };
 
   if (loading) return <div>Loading profile...</div>;
   if (!user) return <div>Please log in to view your profile.</div>;
@@ -64,11 +76,33 @@ export default function UserProfile() {
       {favourites.length === 0 && <div style={{ color: '#888' }}>No favourites yet.</div>}
       <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexWrap: 'wrap', gap: 12 }}>
         {favourites.map(b => (
-          <li key={b.isbn} style={{ border: '1px solid #eee', borderRadius: 8, padding: 8, width: 120 }}>
+          <li key={b.isbn} style={{ border: '1px solid #eee', borderRadius: 8, padding: 8, width: 120, position: 'relative' }}>
             {b.cover && <img src={b.cover} alt="cover" style={{ width: '100%', borderRadius: 4, marginBottom: 4 }} />}
             <div style={{ fontWeight: 'bold', fontSize: 14 }}>{b.title}</div>
             <div style={{ fontSize: 12, color: '#555' }}>{b.authors?.join(', ')}</div>
             <div style={{ fontSize: 11, color: '#888' }}>ISBN: {b.isbn}</div>
+            <button
+              onClick={() => handleRemoveFavourite(b.isbn)}
+              style={{
+                position: 'absolute',
+                top: 4,
+                right: 4,
+                background: '#ffe066',
+                color: '#b8860b',
+                border: 'none',
+                borderRadius: '50%',
+                width: 24,
+                height: 24,
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                fontSize: 16,
+                lineHeight: '24px',
+                padding: 0,
+              }}
+              title="Remove from favourites"
+            >
+              ×
+            </button>
           </li>
         ))}
       </ul>
