@@ -10,6 +10,12 @@ const mockBookModel = {
   create: jest.fn(),
   find: jest.fn(),
   updateOne: jest.fn(),
+  countDocuments: jest.fn(),
+  db: {
+    collection: jest.fn().mockReturnValue({
+      aggregate: jest.fn().mockReturnValue({ toArray: jest.fn().mockResolvedValue([{ avg: 4.5, count: 2 }]) })
+    })
+  },
 };
 
 describe('BookService', () => {
@@ -54,5 +60,63 @@ describe('BookService', () => {
     mockBookModel.updateOne.mockResolvedValue({});
     const updated = await service.refreshAllBooks();
     expect(updated).toBe(2);
+  });
+
+  it('should handle error in refreshAllBooks', async () => {
+    mockBookModel.find.mockResolvedValue([{ isbn: '1' }]);
+    (axios.get as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    mockBookModel.updateOne.mockResolvedValue({});
+    const updated = await service.refreshAllBooks();
+    expect(updated).toBe(0);
+  });
+
+  it('should get all books', async () => {
+    mockBookModel.find.mockReturnValueOnce({ lean: jest.fn().mockResolvedValueOnce(['b1', 'b2']) });
+    const books = await service.getAllBooks();
+    expect(books).toEqual(['b1', 'b2']);
+  });
+
+  it('should get paginated books', async () => {
+    mockBookModel.find.mockReturnValueOnce({ skip: () => ({ limit: () => ({ lean: jest.fn().mockResolvedValueOnce(['b1']) }) }) });
+    mockBookModel.countDocuments.mockResolvedValueOnce(1);
+    const result = await service.getPaginatedBooks(1, 1, '');
+    expect(result.books).toEqual(['b1']);
+    expect(result.total).toBe(1);
+  });
+
+  it('should get paginated books with stats (no query)', async () => {
+    mockBookModel.find.mockReturnValueOnce({ skip: () => ({ limit: () => ({ lean: jest.fn().mockResolvedValueOnce([{ isbn: '1' }]) }) }) });
+    mockBookModel.countDocuments.mockResolvedValueOnce(1);
+    mockBookModel.db.collection = jest.fn().mockReturnValue({
+      aggregate: jest.fn().mockReturnValue({ toArray: jest.fn().mockResolvedValue([{ avg: 4.5, count: 2 }]) })
+    });
+    const result = await service.getPaginatedBooksWithStats(1, 1);
+    expect(result.books[0].ratingStats).toEqual({ avgRating: 4.5, reviewCount: 2 });
+  });
+
+  it('should get paginated books with stats (with query)', async () => {
+    mockBookModel.find.mockReturnValueOnce({ skip: () => ({ limit: () => ({ lean: jest.fn().mockResolvedValueOnce([{ isbn: '1' }]) }) }) });
+    mockBookModel.countDocuments.mockResolvedValueOnce(1);
+    mockBookModel.db.collection = jest.fn().mockReturnValue({
+      aggregate: jest.fn().mockReturnValue({ toArray: jest.fn().mockResolvedValue([{ avg: 4.5, count: 2 }]) })
+    });
+    const result = await service.getPaginatedBooksWithStats(1, 1, 'test');
+    expect(result.books[0].ratingStats).toEqual({ avgRating: 4.5, reviewCount: 2 });
+  });
+
+  it('should return books if already seeded in seedDefaultBooks', async () => {
+    mockBookModel.countDocuments.mockResolvedValueOnce(1);
+    mockBookModel.find.mockReturnValueOnce({ lean: jest.fn().mockResolvedValueOnce(['b1']) });
+    const result = await service.seedDefaultBooks();
+    expect(result.seeded).toBe(0);
+    expect(result.books).toEqual(['b1']);
+  });
+
+  it('should seed default books if none exist', async () => {
+    mockBookModel.countDocuments.mockResolvedValueOnce(0);
+    service.fetchAndCacheBook = jest.fn().mockResolvedValue({ isbn: '1' });
+    mockBookModel.find.mockReturnValueOnce({ lean: jest.fn().mockResolvedValueOnce([]) });
+    const result = await service.seedDefaultBooks();
+    expect(result.seeded).toBeGreaterThanOrEqual(1);
   });
 });

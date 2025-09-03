@@ -95,4 +95,11 @@ describe('BookController', () => {
     expect(result).toEqual({ seeded: true });
     expect(mockBookService.seedDefaultBooks).toHaveBeenCalled();
   });
+
+  it('should refresh all books', async () => {
+    mockBookService.refreshAllBooks = jest.fn().mockResolvedValue(5);
+    const result = await controller.refreshAll();
+    expect(result).toEqual({ updated: 5 });
+    expect(mockBookService.refreshAllBooks).toHaveBeenCalled();
+  });
 });
