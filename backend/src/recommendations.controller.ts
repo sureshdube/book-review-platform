@@ -6,6 +6,7 @@ import { Review, ReviewDocument } from './schemas/review.schema';
 import { Book, BookDocument } from './schemas/book.schema';
 import { Config, ConfigDocument } from './schemas/config.schema';
 import axios from 'axios';
+const PROMPTS = require('./ai-prompts.config');
 
 @Controller('recommendations')
 export class RecommendationsController {
@@ -28,10 +29,18 @@ export class RecommendationsController {
     const reviews = await this.reviewModel.find({ user: userId }).lean();
     const favIsbns = user.favourites || [];
     const favBooks = favIsbns.length ? await this.bookModel.find({ isbn: { $in: favIsbns } }).lean() : [];
-    // Prepare prompt
-  const reviewTitles = reviews.map(r => r.isbn).join(', ');
+    // Prepare improved prompt
+    const reviewTitles = reviews.map(r => r.isbn).join(', ');
     const favTitles = favBooks.map(b => b.title).join(', ');
-    const prompt = `Suggest 5 books for a user who liked: ${favTitles || reviewTitles || 'N/A'}. Reply as a JSON array of book titles.`;
+  const genres = favBooks.flatMap(b => (b.data?.subjects || b.data?.genres || [])).join(', ');
+    let prompt = '';
+    if (favTitles || genres) {
+      prompt = PROMPTS.PROMPT_SIMILAR
+        .replace('{{favourites}}', favTitles)
+        .replace('{{genres}}', genres);
+    } else {
+      prompt = PROMPTS.PROMPT_TOP_RATED;
+    }
     // Call OpenAI
     try {
       const resp = await axios.post('https://api.openai.com/v1/chat/completions', {
