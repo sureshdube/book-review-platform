@@ -21,7 +21,10 @@ export class RecommendationsController {
   async getRecommendations(@Query('userId') userId: string) {
     if (!userId) return { error: 'userId required' };
     // Get OpenAI key
-    const config = await this.configModel.findOne({ key: 'openai_api_key' });
+    let config:any = await this.configModel.findOne({ key: 'openai_api_key' });
+    if(!config?.value){
+      config = {value : process.env.OPENAI_API_KEY}
+    }
     if (!config?.value) return { error: 'OpenAI API key not set' };
     // Get user reviews and favourites
     const user = await this.userModel.findById(userId).lean();
