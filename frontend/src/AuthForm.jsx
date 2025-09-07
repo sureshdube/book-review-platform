@@ -14,8 +14,8 @@ export default function AuthForm({ onAuth, mode = 'login' }) {
     setLoading(true);
     setError('');
     try {
-  const url = mode === 'signup' ? `${API_BASE}/auth/test-user` : `${API_BASE}/auth/login`;
-  const res = await axios.post(url, { email, password });
+      const url = mode === 'signup' ? `${API_BASE}/auth/signup` : `${API_BASE}/auth/login`;
+      const res = await axios.post(url, { email, password });
       onAuth(res.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Auth failed');
