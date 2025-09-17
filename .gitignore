@@ -7,3 +7,13 @@ frontend/node_modules/
 backend/coverage/
 frontend/coverage/
 backend/src/curl.txt
+
+# Ignore Terraform state and cache files
+/terraform/.terraform/
+/terraform/terraform.tfstate
+/terraform/terraform.tfstate.backup
+/terraform/crash.log
+/terraform/override.tf
+/terraform/override.tf.json
+/terraform/*_override.tf
+/terraform/*_override.tf.json

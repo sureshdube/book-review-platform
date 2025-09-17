@@ -14,6 +14,8 @@ export default function BookDetails() {
   const [favError, setFavError] = useState('');
   const [error, setError] = useState('');
   const [reviews, setReviews] = useState([]);
+  // Always ensure reviews is an array
+  const safeReviews = Array.isArray(reviews) ? reviews : [];
   const [reviewText, setReviewText] = useState('');
   const [rating, setRating] = useState(5);
   const [editing, setEditing] = useState(false);
@@ -87,7 +89,7 @@ export default function BookDetails() {
   };
 
   // Find the user's own review, if any
-  const userReview = user && reviews.find(r => r.user === user._id);
+  const userReview = user && safeReviews.find(r => r.user === user._id);
 
   const handleReviewSubmit = async e => {
     e.preventDefault();
@@ -240,9 +242,9 @@ export default function BookDetails() {
 
       <div style={{ marginTop: 32 }}>
         <h3>Reviews</h3>
-        {reviews.length === 0 && <div>No reviews yet.</div>}
+        {safeReviews.length === 0 && <div>No reviews yet.</div>}
         <ul style={{ listStyle: 'none', padding: 0 }}>
-          {reviews.map(r => (
+          {safeReviews.map(r => (
             <li key={r._id} style={{ borderBottom: '1px solid #eee', marginBottom: 12, paddingBottom: 8 }}>
               <div style={{ fontWeight: 'bold' }}>{r.userEmail || 'User'} <span style={{ color: '#f39c12' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span></div>
               <div style={{ fontSize: 13, color: '#555' }}>{r.text}</div>

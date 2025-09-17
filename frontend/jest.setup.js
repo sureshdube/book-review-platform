@@ -4,3 +4,11 @@ if (typeof global.TextEncoder === 'undefined') {
   global.TextEncoder = TextEncoder;
   global.TextDecoder = TextDecoder;
 }
+
+// Mock import.meta.env for Vite in Jest
+if (!global.hasOwnProperty('import')) {
+  global.import = {};
+}
+if (!global.import.meta) {
+  global.import.meta = { env: { VITE_API_BASE: '' } };
+}
