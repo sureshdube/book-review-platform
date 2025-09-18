@@ -136,16 +136,16 @@ export class BookService {
     }
     // 10 popular ISBNs (can be changed as needed)
     const defaultIsbns = [
-      '9780140328721', // Matilda
+      '9780590353427', // Harry Potter and the Sorcerer's Stone
+      '9780439064873', // Harry Potter and the Chamber of Secrets
+      '9780439136365', // Harry Potter and the Prisoner of Azkaban
       '9780439139601', // Harry Potter and the Goblet of Fire
-      '9780061120084', // To Kill a Mockingbird
-      '9780747532743', // Harry Potter and the Philosopher's Stone
-      '9780316769488', // The Catcher in the Rye
-      '9780451524935', // 1984
-      '9780618260300', // The Hobbit
+      '9780439358071', // Harry Potter and the Order of the Phoenix
+      '9780439785969', // Harry Potter and the Half-Blood Prince
       '9780545010221', // Harry Potter and the Deathly Hallows
-      '9780140449136', // The Odyssey
-      '9780141439600', // Jane Eyre
+      '9780061120084', // To Kill a Mockingbird
+      '9780307277671', // The Kite Runner
+      '9780385472579', // Things Fall Apart
     ];
     const books: BookDocument[] = [];
     for (const isbn of defaultIsbns) {
