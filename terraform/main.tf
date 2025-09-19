@@ -25,6 +25,12 @@ variable "ssh_cidr" {
   default     = "0.0.0.0/0"
 }
 
+variable "ec2_recreate_trigger" {
+  description = "Change this value to force EC2 recreation and re-run user_data"
+  type        = string
+  default     = "initial-16"
+}
+
 # --- Security Group (provider v5 style: rules as separate resources) ---
 resource "aws_security_group" "bookreview_sg" {
   name        = "bookreview-sg"
@@ -126,27 +132,74 @@ resource "aws_instance" "bookreview" {
   instance_type          = var.free_tier_instance_type   # default t2.micro
   key_name               = "bookreviewAssignment"        # must exist in us-east-1
   vpc_security_group_ids = [aws_security_group.bookreview_sg.id]
+  user_data_replace_on_change = true
 
   user_data = <<-EOF
-    #!/bin/bash
-    set -e
-    apt-get update -y
-    apt-get install -y docker.io git
-    systemctl enable --now docker
+#!/bin/bash
+# Trigger: ${var.ec2_recreate_trigger}
+set -e
+exec > /var/log/user-data.log 2>&1
 
-    git clone https://github.com/sureshdube/book-review-platform.git /opt/book-review-platform
+# Remove old Docker if present
+apt-get remove -y docker docker-engine docker.io containerd runc || true
 
-    cd /opt/book-review-platform/backend
-    docker build -t bookreview-backend .
-    # Ensure /opt/book-review-platform/backend/.env exists or remove --env-file
-    docker run -d --name bookreview-backend -p 3000:3000 --env-file .env bookreview-backend || true
+# Install dependencies
+apt-get update -y
+apt-get install -y ca-certificates curl gnupg lsb-release
 
-    cd /opt/book-review-platform/frontend
-    docker build -t bookreview-frontend .
-    docker run -d --name bookreview-frontend -p 80:80 bookreview-frontend || true
-  EOF
+# Add Docker’s official GPG key
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+  gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
-  tags = { Name = "bookreview-ec2" }
+# Add Docker apt repository
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | \
+  tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+apt-get update -y
+
+# Install Docker and Docker Compose plugin
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin git
+
+systemctl enable --now docker
+
+# Clone or update the latest code
+if [ -d /opt/book-review-platform/.git ]; then
+  cd /opt/book-review-platform
+  git fetch --all
+  git reset --hard origin/main
+else
+  git clone https://github.com/sureshdube/book-review-platform.git /opt/book-review-platform
+  cd /opt/book-review-platform
+fi
+
+# Remove old containers and images
+docker compose down --remove-orphans || true
+docker rm -f $(docker ps -aq) || true
+docker system prune -af -f || true
+
+# Optional: Set VITE_API_BASE dynamically for frontend
+echo "VITE_API_BASE=\"http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):3000\"" | tee frontend/.env frontend/.env.production > /dev/null
+
+# Build and start all services fresh
+docker compose build --no-cache
+docker compose up -d
+EOF
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  metadata_options {
+    http_tokens = "optional"
+  }
+
+  tags = {
+    Name = "bookreview-ec2"
+    Recreate_Trigger = var.ec2_recreate_trigger
+  }
 }
 
 # --- Outputs ---
