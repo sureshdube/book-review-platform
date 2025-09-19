@@ -135,18 +135,18 @@ export class BookService {
       return { seeded: 0, books: await this.bookModel.find().lean() };
     }
     // 10 popular ISBNs (can be changed as needed)
-    const defaultIsbns = [
-      '9780590353427', // Harry Potter and the Sorcerer's Stone
-      '9780439064873', // Harry Potter and the Chamber of Secrets
-      '9780439136365', // Harry Potter and the Prisoner of Azkaban
-      '9780439139601', // Harry Potter and the Goblet of Fire
-      '9780439358071', // Harry Potter and the Order of the Phoenix
-      '9780439785969', // Harry Potter and the Half-Blood Prince
-      '9780545010221', // Harry Potter and the Deathly Hallows
-      '9780061120084', // To Kill a Mockingbird
-      '9780307277671', // The Kite Runner
-      '9780385472579', // Things Fall Apart
-    ];
+const defaultIsbns = [
+  '9780140328721', // Matilda – Roald Dahl
+  '9780439139600', // Harry Potter and the Goblet of Fire – J.K. Rowling
+  '9780439358064', // Harry Potter and the Order of the Phoenix – J.K. Rowling
+  '9780439784542', // Harry Potter and the Half-Blood Prince – J.K. Rowling
+  '9780439136365', // Harry Potter and the Prisoner of Azkaban – J.K. Rowling
+  '9780316769488', // The Catcher in the Rye – J.D. Salinger
+  '9780743273565', // The Great Gatsby – F. Scott Fitzgerald
+  '9780061120084', // To Kill a Mockingbird – Harper Lee
+  '9780547928227', // The Hobbit – J.R.R. Tolkien
+  '9780261103573'  // The Lord of the Rings – J.R.R. Tolkien
+];
     const books: BookDocument[] = [];
     for (const isbn of defaultIsbns) {
       try {
